@@ -1,2 +1,7 @@
-main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+import Test.QuickCheck
+import Resolution
+import TruthTable
+import Proposition
+
+prop_ResolutionMethodEqualsTruthTableMethod :: Proposition -> Bool
+prop_ResolutionMethodEqualsTruthTableMethod prop = Resolution.proof prop == TruthTable.proof prop

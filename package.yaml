@@ -27,6 +27,8 @@ library:
   dependencies:
   - QuickCheck
   - containers
+  - system-fileio
+  - directory
 
 executables:
   sat-prover-haskell-exe:
@@ -38,6 +40,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - sat-prover-haskell
+    - optparse-applicative
 
 tests:
   sat-prover-haskell-test:

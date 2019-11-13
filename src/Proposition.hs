@@ -7,17 +7,17 @@ data Proposition = Atomic Char
                  | Negation Proposition
                  | Conjunction Proposition Proposition
                  | Disjunction Proposition Proposition
-                 | Implication Proposition Proposition deriving (Eq, Show)
+                 | Implication Proposition Proposition deriving (Eq)
 
--- instance Show Proposition where
---   show (Atomic   c   ) = [c]
---   show (Negation prop) = "(~" ++ show prop ++ ")"
---   show (Conjunction prop1 prop2) =
---     "(" ++ show prop1 ++ " . " ++ show prop2 ++ ")"
---   show (Disjunction prop1 prop2) =
---     "(" ++ show prop1 ++ " + " ++ show prop2 ++ ")"
---   show (Implication prop1 prop2) =
---     "(" ++ show prop1 ++ " > " ++ show prop2 ++ ")"
+instance Show Proposition where
+  show (Atomic   c   ) = [c]
+  show (Negation prop) = "(~" ++ show prop ++ ")"
+  show (Conjunction prop1 prop2) =
+    "(" ++ show prop1 ++ " . " ++ show prop2 ++ ")"
+  show (Disjunction prop1 prop2) =
+    "(" ++ show prop1 ++ " + " ++ show prop2 ++ ")"
+  show (Implication prop1 prop2) =
+    "(" ++ show prop1 ++ " > " ++ show prop2 ++ ")"
 
 instance Arbitrary Proposition where
   arbitrary = sized proposition

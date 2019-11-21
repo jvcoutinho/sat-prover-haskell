@@ -37,5 +37,12 @@ expand (Conjunction f1 f2)             = let
     in 
       Set.foldr (Set.union) Set.empty s3
 
-proof :: Proposition -> Bool
-proof prop = not $ Set.foldr (||) False  (Set.map (\n -> isValidBranch n) (expand (Negation prop)))
+proof :: Proposition -> IO Bool
+proof prop = do
+  let branches = expand (Negation prop)
+  let filteredBranches = Set.filter isValidBranch branches
+  if Set.null filteredBranches
+    then putStrLn ""
+    else print $ (Set.toList filteredBranches)!!0
+
+  return (not $ Set.foldr (||) False  (Set.map (\n -> isValidBranch n) branches))

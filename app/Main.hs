@@ -40,9 +40,8 @@ proof prop Resolution = do
         then return $ show prop ++ " is tautology."
         else return $ show prop ++ " is not tautology."
 
-proof prop Tableaux = let
-    result = Tableaux.proof prop
-    in
+proof prop Tableaux =  do
+    result <- Tableaux.proof prop
     if result
         then return $ show prop ++ " is tautology."
         else return $ show prop ++ " is not tautology."

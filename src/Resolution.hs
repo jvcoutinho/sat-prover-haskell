@@ -3,8 +3,10 @@ module Resolution where
 import           Proposition
 import           Data.List
 
-proof :: Proposition -> Bool
-proof prop = emptyClauseIsReachable . toCNF $ Negation prop
+proof :: Proposition -> IO Bool
+proof prop = do 
+  putStrLn $ "Evaluating expression at CNF " ++ (show $ toCNF $ Negation prop)
+  emptyClauseIsReachable . toCNF $ Negation prop
 
 toCNF :: Proposition -> Proposition
 -- Literals
@@ -31,31 +33,41 @@ toCNF (Negation (Disjunction prop1 prop2)) =
   toCNF $ Conjunction (toCNF $ Negation prop1) (toCNF $ Negation prop2)
 toCNF (Negation prop) = toCNF (Negation $ toCNF prop)
 
-data Literal = Positive Char | Negative Char deriving (Eq, Show, Ord)
+data Literal = Positive Char | Negative Char deriving (Eq, Ord)
 type Clause = [Literal]
 type CNF = [Clause]
+
+instance Show Literal where
+  show (Positive c) = [c]
+  show (Negative c) = '~' : [c] 
 
 complementary :: Literal -> Literal
 complementary (Positive prop) = Negative prop
 complementary (Negative prop) = Positive prop
 
-emptyClauseIsReachable :: Proposition -> Bool
-emptyClauseIsReachable prop = elem [] (clausePropagation $ getClauses prop)
+emptyClauseIsReachable :: Proposition -> IO Bool
+emptyClauseIsReachable prop = do 
+  print $ getClauses prop
+  clauses <- clausePropagation $ getClauses prop
+  return $ elem [] clauses
 
-clausePropagation :: CNF -> CNF
-clausePropagation [] = []
-clausePropagation (clause : cs) =
-  clause : (clausePropagation $ cs ++ (propagate clause clause cs))
+clausePropagation :: CNF -> IO CNF
+clausePropagation [] = return []
+clausePropagation (clause : cs) = do
+  let propagation = propagate clause (clause:cs) []
+  putStrLn $ "Propagating " ++ show clause ++ ": " ++ show propagation
+  clauses <- clausePropagation $ removeRepetition $ cs ++ propagation
+  return $ clause : clauses
 
-propagate :: Clause -> Clause -> CNF -> CNF
-propagate []             _      clauses = clauses
-propagate (literal : ls) clause clauses = propagate
+propagate :: Clause -> CNF -> CNF -> CNF
+propagate []             _ newClauses = newClauses
+propagate (literal : ls) (clause:cs) newClauses = propagate
   ls
-  clause
-  [ resolve literal clause cs | cs <- clauses, elem (complementary literal) cs ]
+  (clause:cs)
+  newClauses ++ [ resolve literal clause cs | cs <- cs, elem (complementary literal) cs ]
 
 resolve :: Literal -> Clause -> Clause -> Clause
-resolve literal clause complementaryClause =
+resolve literal clause complementaryClause = sort $
   removeRepetition
     $  (delete literal clause)
     ++ (delete (complementary literal) complementaryClause)
@@ -67,11 +79,11 @@ removeRepetition (x : xs) | elem x xs = removeRepetition xs
 
 getClauses :: Proposition -> CNF
 getClauses (Disjunction prop1 prop2) =
-  [removeRepetition $ getLiterals prop1 ++ getLiterals prop2]
-getClauses (Conjunction prop1 prop2) = getClauses prop1 ++ getClauses prop2
-getClauses prop                      = [removeRepetition $ getLiterals prop]
+  removeRepetition [removeRepetition $ getLiterals prop1 ++ getLiterals prop2]
+getClauses (Conjunction prop1 prop2) = removeRepetition $ getClauses prop1 ++ getClauses prop2
+getClauses prop                      = removeRepetition [removeRepetition $ getLiterals prop]
 
 getLiterals :: Proposition -> Clause
 getLiterals (Atomic   c             ) = [Positive c]
 getLiterals (Negation (Atomic c)    ) = [Negative c]
-getLiterals (Disjunction prop1 prop2) = getLiterals prop1 ++ getLiterals prop2
+getLiterals (Disjunction prop1 prop2) = sort $ getLiterals prop1 ++ getLiterals prop2

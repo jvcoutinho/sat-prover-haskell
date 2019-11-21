@@ -1,6 +1,7 @@
 module Main where
 
 import           Resolution
+import           Tableaux
 import           TruthTable
 import           Proposition
 import           Options.Applicative
@@ -19,6 +20,7 @@ run (Arguments file method) = do
     propositions <- readLines hFile
     case method of
         Resolution -> putStrLn "Resolution Method"
+        Tableaux -> putStrLn "Tableaux Method"
         TruthTable -> putStrLn "Truth Table Method"
     proofPropositions (map PropositionParser.prop_parser propositions) method
     hClose hFile
@@ -33,6 +35,7 @@ proof :: Proposition -> Method -> String
 proof prop method
     | case method of
         Resolution -> Resolution.proof prop
+        Tableaux -> Tableaux.proof prop
         TruthTable -> TruthTable.proof prop
     = show prop ++ " is tautology."
     | otherwise
@@ -44,7 +47,7 @@ readLines file = do
     isEOF <- hIsEOF file
     if isEOF then return [] else liftM2 (:) (hGetLine file) (readLines file)
 
-data Method = Resolution | TruthTable | All deriving (Show, Read)
+data Method = Resolution | TruthTable | Tableaux | All deriving (Show, Read)
 data Arguments = Arguments FilePath Method deriving (Show)
 
 argumentParser :: Options.Applicative.Parser Arguments
